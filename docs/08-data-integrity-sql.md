@@ -41,15 +41,15 @@ ORDER BY updated_at DESC;
 
 ## Assumptions
 
-| Area | Assumption | Effect if wrong |
-|---|---|---|
-| Engine | MySQL 8 / MariaDB (Snipe-IT's supported DBs) | Swap `GROUP_CONCAT`→`STRING_AGG`, `UTC_TIMESTAMP()`→`NOW() AT TIME ZONE 'UTC'` |
-| Time zone | `updated_at` stored in UTC (Laravel default) | If stored in app-local time, compare with `NOW()` and convert, or results are shifted by the UTC offset |
-| "Last 7 days" | Rolling 168 h | Calendar-day variant provided; confirm with Product (open question Q7) |
-| Precision | `updated_at` has 1-second precision | An edit and a check in the same second compare as `>=`, not `>` |
-| Status | Text label; NULL possible | Real Snipe-IT uses `status_id` → join `status_labels` |
-| Deletes | No soft-delete column | In real Snipe-IT add `deleted_at IS NULL`, or duplicates may include deleted rows (open question Q3) |
-| Uniqueness | Should be case/space-insensitive | Stricter query shows violations a plain index misses |
+| Area          | Assumption                                   | Effect if wrong                                                                                         |
+| ------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Engine        | MySQL 8 / MariaDB (Snipe-IT's supported DBs) | Swap `GROUP_CONCAT`→`STRING_AGG`, `UTC_TIMESTAMP()`→`NOW() AT TIME ZONE 'UTC'`                          |
+| Time zone     | `updated_at` stored in UTC (Laravel default) | If stored in app-local time, compare with `NOW()` and convert, or results are shifted by the UTC offset |
+| "Last 7 days" | Rolling 168 h                                | Calendar-day variant provided; confirm with Product (open question Q7)                                  |
+| Precision     | `updated_at` has 1-second precision          | An edit and a check in the same second compare as `>=`, not `>`                                         |
+| Status        | Text label; NULL possible                    | Real Snipe-IT uses `status_id` → join `status_labels`                                                   |
+| Deletes       | No soft-delete column                        | In real Snipe-IT add `deleted_at IS NULL`, or duplicates may include deleted rows (open question Q3)    |
+| Uniqueness    | Should be case/space-insensitive             | Stricter query shows violations a plain index misses                                                    |
 
 ## Tracing a successful UI edit: UI → network → API → DB
 

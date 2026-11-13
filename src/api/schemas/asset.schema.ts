@@ -18,7 +18,9 @@ export function expectAssetSchema(asset: unknown): void {
   const a = asset as Record<string, unknown>;
   expect(a.name === null || typeof a.name === 'string', 'name is string|null').toBe(true);
   expect(a.serial === null || typeof a.serial === 'string', 'serial is string|null').toBe(true);
-  expect(a.assigned_to === null || typeof a.assigned_to === 'object', 'assigned_to is object|null').toBe(true);
+  expect(a.assigned_to === null || typeof a.assigned_to === 'object', 'assigned_to is object|null').toBe(
+    true,
+  );
   expect(Number.isNaN(Date.parse((a.updated_at as { datetime: string }).datetime)), 'updated_at parses').toBe(
     false,
   );

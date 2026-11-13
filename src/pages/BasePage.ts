@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { Select2 } from './components/Select2';
+import { CommonLocators as L } from './locators';
 
 /**
  * Shared behaviour for every Snipe-IT page: alerts, navigation, session checks.
@@ -13,19 +14,19 @@ export abstract class BasePage {
   }
 
   get successAlert(): Locator {
-    return this.page.locator('.alert-success').first();
+    return this.page.locator(L.successAlert).first();
   }
 
   get errorAlert(): Locator {
-    return this.page.locator('.alert-danger').first();
+    return this.page.locator(L.errorAlert).first();
   }
 
   get pageTitle(): Locator {
-    return this.page.locator('.content-header h1, h1.pagetitle').first();
+    return this.page.locator(L.pageTitle).first();
   }
 
   get mainContent(): Locator {
-    return this.page.locator('section.content, .content-wrapper').first();
+    return this.page.locator(L.mainContent).first();
   }
 
   async open(path: string): Promise<void> {
@@ -40,6 +41,16 @@ export abstract class BasePage {
         `Redirected to login when opening ${this.page.url()} — session expired or demo was reset. Re-run the "setup" project.`,
       );
     }
+  }
+
+  /**
+   * Call right before submitting a form. Every Snipe-IT page fires a background livewire/update POST
+   * on load; if it reaches the server after the form POST it consumes Laravel's one-shot flash
+   * message, so the redirect target renders without the success alert (intermittent false failure).
+   */
+  async waitForBackgroundRequests(): Promise<void> {
+    // eslint-disable-next-line playwright/no-networkidle
+    await this.page.waitForLoadState('networkidle');
   }
 
   async expectSuccessAlert(text?: string | RegExp): Promise<void> {

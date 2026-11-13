@@ -6,12 +6,12 @@
 - **Part 2**: Playwright + TypeScript framework with page objects, Select2/table helpers, typed env config, session reuse via `storageState`, logged-out contexts, auto-cleaning data fixtures, run-scoped sweeper, retries/trace/rerun-failed, quarantine tag, ESLint (incl. no fixed waits) + Prettier, GitLab CI. UI specs for login, create + locate, update after reload, two negative validations, checkout/checkin, unauthenticated access, plus an E2E lifecycle test.
 - **Part 3**: endpoints taken from the API reference; code-based API suite (read, schema, auth negatives, create, update, duplicate/missing-field validation, boundary, checkout/checkin); Postman collection + environment; API↔UI integration tests; data-isolation approach; local Docker environment for blocked cases.
 - **Part 4**: SQL for duplicates (exact and case/space-insensitive), counts by status, last-7-days updates; UI→network→API→DB trace procedure with assumptions.
-- **Part 5**: two clearly labelled **unverified hypotheses** with verifying tests; investigation plan for "API success, UI stale"; defect template.
+- **Part 5**: one **confirmed defect, DEF-01**: typed dates are replaced by today's date when the field gets focus. It was found on the live demo, and TC-11 (`tests/ui/asset-date-entry.spec.ts`) catches it. Also two clearly labelled **unverified hypotheses** with verifying tests, an investigation plan for "API success, UI stale", and a defect template.
 - **Part 6**: release, time-pressure and flaky-automation answers.
 
 ## Not completed / limitations
 
-- **No execution against the live demo yet.** The authoring environment could not reach demo.snipeitapp.com, so locators and exact messages follow Snipe-IT conventions and the API reference, and must be confirmed on the first run. Execution evidence (HTML report, JUnit, traces) is produced by `npm test` and is not yet in `evidence/`.
+- **Live run done (UI/E2E):** the suite was run against demo.snipeitapp.com (v8.8.4-pre). Locators were confirmed and fixed there, and smoke and regression pass, except TC-11, which fails by design on DEF-01. HTML report, JUnit and traces are produced by `npm test`. Copy them into `evidence/` when submitting.
 - **API token on demo** not yet confirmed. Without it, API write/read and integration tests skip with a reason. Auth-negative API tests and all UI tests still run.
 - **No confirmed defects** — hypotheses only, by design of the assessment rules.
 - Non-admin permission test (TC-09 part 3) needs a controlled environment.

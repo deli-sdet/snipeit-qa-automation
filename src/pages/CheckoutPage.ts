@@ -1,22 +1,23 @@
 import { expect, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { CheckoutLocators as L, CommonLocators } from './locators';
 
 /** /hardware/{id}/checkout */
 export class CheckoutPage extends BasePage {
   get userRadio(): Locator {
-    return this.page.locator('input[name="checkout_to_type"][value="user"]');
+    return this.page.locator(L.userRadio);
   }
 
   get userSelect(): Locator {
-    return this.page.locator('select[name="assigned_user"]');
+    return this.page.locator(L.userSelect);
   }
 
   get note(): Locator {
-    return this.page.locator('textarea[name="note"]');
+    return this.page.locator(L.note);
   }
 
   get submit(): Locator {
-    return this.page.locator('button[type="submit"]').filter({ hasText: /check ?out/i }).first();
+    return this.page.locator(CommonLocators.submitButton).filter({ hasText: L.submitText }).first();
   }
 
   async goto(id: number): Promise<void> {
@@ -37,6 +38,7 @@ export class CheckoutPage extends BasePage {
       ? await this.select2.select(this.userSelect, userName)
       : await this.select2.selectFirst(this.userSelect);
     await this.note.fill(note);
+    await this.waitForBackgroundRequests();
     await this.submit.click();
     await this.expectSuccessAlert();
     return chosen;

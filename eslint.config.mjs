@@ -31,7 +31,8 @@ export default tseslint.config(
       'playwright/no-conditional-in-test': 'warn',
       'playwright/no-force-option': 'error',
       'playwright/prefer-web-first-assertions': 'error',
-      'playwright/expect-expect': ['error', { assertFunctionNames: ['expect*'] }],
+      // Page-object helpers named expectXxx() (e.g. loginPage.expectLoggedIn()) count as assertions.
+      'playwright/expect-expect': ['error', { assertFunctionPatterns: ['^expect[A-Z]'] }],
       'playwright/no-standalone-expect': 'off',
     },
   },

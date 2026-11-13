@@ -27,7 +27,9 @@ export default async function globalTeardown(): Promise<void> {
     for (const asset of leftovers) {
       if (asset.assigned_to) await hardware.checkin(asset.id, 'teardown sweep');
       const del = await hardware.remove(asset.id);
-      logger.warn(`Swept leftover asset ${asset.asset_tag} (id ${asset.id}) -> ${del.body?.status ?? del.status}`);
+      logger.warn(
+        `Swept leftover asset ${asset.asset_tag} (id ${asset.id}) -> ${del.body?.status ?? del.status}`,
+      );
     }
     if (leftovers.length === 0) logger.info(`Sweeper: no leftovers for ${prefix}`);
   } catch (e) {

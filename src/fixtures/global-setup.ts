@@ -7,7 +7,9 @@ import { logger } from '../utils/logger';
  * instead of dozens of locator timeouts that look like product bugs.
  */
 export default async function globalSetup(_config: FullConfig): Promise<void> {
-  logger.info(`Run ${env.runId} | env=${env.testEnv} | base=${env.baseUrl} | apiToken=${hasApiToken() ? 'yes' : 'no'}`);
+  logger.info(
+    `Run ${env.runId} | env=${env.testEnv} | base=${env.baseUrl} | apiToken=${hasApiToken() ? 'yes' : 'no'}`,
+  );
   const ctx = await request.newContext({ baseURL: env.baseUrl });
   try {
     const res = await ctx.get('/login', { timeout: 30_000 });

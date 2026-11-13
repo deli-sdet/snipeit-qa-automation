@@ -4,14 +4,14 @@ Playwright + TypeScript, Chromium (Firefox/WebKit opt-in with `ALL_BROWSERS=true
 
 ## What is automated
 
-| Requirement | Spec | Test |
-|---|---|---|
-| **Positive**: sign in, go to hardware, create asset, assert it appears with expected attributes | `tests/ui/auth.spec.ts`, `tests/ui/asset-create.spec.ts` | TC-01, TC-02/TC-03 |
-| **Update**: edit safe attribute, assert after reload/revisit | `tests/ui/asset-update.spec.ts` | TC-04 |
-| **Negative**: form error without altering unrelated records | `tests/ui/asset-validation.spec.ts` | TC-05 (missing model), TC-06 (duplicate tag) |
-| Checkout / checkin | `tests/ui/asset-checkout.spec.ts` | TC-08 |
-| Unauthenticated access | `tests/ui/auth.spec.ts` | TC-09a, invalid password |
-| Full workflow with real login | `tests/e2e/asset-lifecycle.spec.ts` | E2E |
+| Requirement                                                                                     | Spec                                                     | Test                                         |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------- |
+| **Positive**: sign in, go to hardware, create asset, assert it appears with expected attributes | `tests/ui/auth.spec.ts`, `tests/ui/asset-create.spec.ts` | TC-01, TC-02/TC-03                           |
+| **Update**: edit safe attribute, assert after reload/revisit                                    | `tests/ui/asset-update.spec.ts`                          | TC-04                                        |
+| **Negative**: form error without altering unrelated records                                     | `tests/ui/asset-validation.spec.ts`                      | TC-05 (missing model), TC-06 (duplicate tag) |
+| Checkout / checkin                                                                              | `tests/ui/asset-checkout.spec.ts`                        | TC-08                                        |
+| Unauthenticated access                                                                          | `tests/ui/auth.spec.ts`                                  | TC-09a, invalid password                     |
+| Full workflow with real login                                                                   | `tests/e2e/asset-lifecycle.spec.ts`                      | E2E                                          |
 
 ## How the requirements are met
 

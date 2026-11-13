@@ -23,7 +23,9 @@ import type {
 export class HardwareApi {
   constructor(private readonly api: ApiClient) {}
 
-  list(params: { search?: string; limit?: number; offset?: number; sort?: string; order?: 'asc' | 'desc' } = {}) {
+  list(
+    params: { search?: string; limit?: number; offset?: number; sort?: string; order?: 'asc' | 'desc' } = {},
+  ) {
     return this.api.get<HardwareListResponse>('hardware', { limit: 50, offset: 0, ...params });
   }
 

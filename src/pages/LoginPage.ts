@@ -1,17 +1,18 @@
 import { expect, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { CommonLocators, LoginLocators as L } from './locators';
 
 export class LoginPage extends BasePage {
   get username(): Locator {
-    return this.page.locator('#username, input[name="username"]').first();
+    return this.page.locator(L.username).first();
   }
 
   get password(): Locator {
-    return this.page.locator('#password, input[name="password"]').first();
+    return this.page.locator(L.password).first();
   }
 
   get submit(): Locator {
-    return this.page.getByRole('button', { name: /log ?in/i });
+    return this.page.getByRole('button', { name: L.submitName });
   }
 
   async goto(): Promise<void> {
@@ -27,7 +28,7 @@ export class LoginPage extends BasePage {
 
   async expectLoggedIn(): Promise<void> {
     await expect(this.page).not.toHaveURL(/\/login/);
-    await expect(this.page.locator('header.main-header, .main-header')).toBeVisible();
+    await expect(this.page.locator(CommonLocators.mainHeader)).toBeVisible();
   }
 
   async expectOnLoginPage(): Promise<void> {

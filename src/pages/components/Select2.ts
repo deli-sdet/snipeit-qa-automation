@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import { Select2Locators as L } from '../locators';
 
 /**
  * Reusable helper for Snipe-IT's Select2 dropdowns (model, status, user, location).
@@ -10,26 +11,24 @@ export class Select2 {
   constructor(private readonly page: Page) {}
 
   private container(select: Locator): Locator {
-    return select.locator('xpath=following-sibling::span[contains(@class,"select2")][1]');
+    return select.locator(L.container);
   }
 
   private get openDropdown(): Locator {
-    return this.page.locator('.select2-container--open');
+    return this.page.locator(L.openDropdown);
   }
 
   private realOptions(): Locator {
-    return this.openDropdown.locator(
-      '.select2-results__option:not(.loading-results):not(.select2-results__message):not([aria-disabled="true"])',
-    );
+    return this.openDropdown.locator(L.realOption);
   }
 
   private async open(select: Locator): Promise<void> {
-    await this.container(select).locator('.select2-selection').click();
-    await expect(this.openDropdown.locator('.select2-results')).toBeVisible();
+    await this.container(select).locator(L.selection).click();
+    await expect(this.openDropdown.locator(L.results)).toBeVisible();
   }
 
   private async typeSearch(text: string): Promise<void> {
-    const search = this.openDropdown.locator('.select2-search__field');
+    const search = this.openDropdown.locator(L.searchField);
     // Non-AJAX selects with few options may hide the search box; that's fine.
     if ((await search.count()) > 0 && (await search.isVisible())) {
       await search.fill(text);
@@ -61,11 +60,11 @@ export class Select2 {
 
   /** Clears a selection (Select2 "×" button), if present. */
   async clear(select: Locator): Promise<void> {
-    const clearBtn = this.container(select).locator('.select2-selection__clear');
+    const clearBtn = this.container(select).locator(L.clearButton);
     if ((await clearBtn.count()) > 0) await clearBtn.first().click();
   }
 
   async selectedText(select: Locator): Promise<string> {
-    return (await this.container(select).locator('.select2-selection__rendered').innerText()).trim();
+    return (await this.container(select).locator(L.rendered).innerText()).trim();
   }
 }

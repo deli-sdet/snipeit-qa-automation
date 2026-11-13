@@ -26,7 +26,10 @@ export async function createAssetViaApi(
   return { ...data, id: payload.id, createdVia: 'api' };
 }
 
-export async function createAssetViaUi(page: Page, overrides: Partial<AssetInput> = {}): Promise<CreatedAsset> {
+export async function createAssetViaUi(
+  page: Page,
+  overrides: Partial<AssetInput> = {},
+): Promise<CreatedAsset> {
   const data = buildAsset(overrides);
   const form = new AssetFormPage(page);
   await form.create(data);
@@ -43,7 +46,8 @@ export async function deleteAsset(
   try {
     if (opts.hardware) {
       const current = await opts.hardware.get(asset.id);
-      if (current.status === 200 && current.body?.assigned_to) await opts.hardware.checkin(asset.id, 'cleanup');
+      if (current.status === 200 && current.body?.assigned_to)
+        await opts.hardware.checkin(asset.id, 'cleanup');
       const res = await opts.hardware.remove(asset.id);
       logger.debug(`API delete ${asset.assetTag}: ${res.body?.status}`);
       return;

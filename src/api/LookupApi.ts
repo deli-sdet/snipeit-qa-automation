@@ -22,7 +22,9 @@ export class LookupApi {
   private async search(path: string, search: string): Promise<Row[]> {
     const res = await this.api.get<List>(path, search ? { search, limit: 50 } : { limit: 50 });
     if (res.status !== 200 || !Array.isArray(res.body?.rows)) {
-      throw new Error(`Lookup ${path}?search=${search} failed: HTTP ${res.status} ${JSON.stringify(res.body)}`);
+      throw new Error(
+        `Lookup ${path}?search=${search} failed: HTTP ${res.status} ${JSON.stringify(res.body)}`,
+      );
     }
     return res.body.rows;
   }
@@ -37,7 +39,8 @@ export class LookupApi {
   async deployableStatus(name: string): Promise<Row> {
     const rows = await this.search('statuslabels', '');
     const row =
-      rows.find((r) => r.name.toLowerCase() === name.toLowerCase()) ?? rows.find((r) => r.type === 'deployable');
+      rows.find((r) => r.name.toLowerCase() === name.toLowerCase()) ??
+      rows.find((r) => r.type === 'deployable');
     if (!row) throw new Error(`No status label "${name}" and no deployable status found.`);
     return row;
   }

@@ -1,4 +1,6 @@
 import { test as base, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 import { env, hasApiToken } from '../config/env';
 import { ApiClient } from '../api/ApiClient';
 import { HardwareApi } from '../api/HardwareApi';
@@ -39,6 +41,8 @@ interface TestFixtures {
 interface WorkerFixtures {
   /** Reference IDs resolved by name once per worker (requires API token). */
   lookups: Lookups | undefined;
+  /** Lazily logs in once per worker and returns that worker's own storageState file. */
+  workerSession: { storageStatePath(): Promise<string> };
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -48,6 +52,39 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   detailPage: async ({ page }, use) => use(new AssetDetailPage(page)),
   checkoutPage: async ({ page }, use) => use(new CheckoutPage(page)),
   checkinPage: async ({ page }, use) => use(new CheckinPage(page)),
+
+  /*
+   * One Laravel session per worker. Sharing the setup project's single session across parallel
+   * workers makes them consume each other's one-shot flash messages ("Asset created/updated/deleted"),
+   * so success alerts intermittently never render. Only projects that configure a storageState get
+   * a per-worker session; e2e (real login) and test.use({ storageState: LOGGED_OUT }) are untouched.
+   */
+  storageState: async ({ storageState, workerSession }, use) => {
+    await use(storageState ? await workerSession.storageStatePath() : storageState);
+  },
+
+  workerSession: [
+    async ({ browser }, use, workerInfo) => {
+      let pending: Promise<string> | undefined;
+      const login = async (): Promise<string> => {
+        const file = path.join('.auth', `admin-worker-${workerInfo.parallelIndex}.json`);
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        const context = await browser.newContext({ baseURL: env.baseUrl });
+        try {
+          const loginPage = new LoginPage(await context.newPage());
+          await loginPage.goto();
+          await loginPage.login(env.username, env.password);
+          await loginPage.expectLoggedIn();
+          await context.storageState({ path: file });
+        } finally {
+          await context.close();
+        }
+        return file;
+      };
+      await use({ storageStatePath: () => (pending ??= login()) });
+    },
+    { scope: 'worker' },
+  ],
 
   lookups: [
     async ({}, use) => {

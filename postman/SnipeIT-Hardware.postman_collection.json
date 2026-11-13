@@ -64,12 +64,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/models?search={{modelName}}&limit=5",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "models"
-              ],
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["models"],
               "query": [
                 {
                   "key": "search",
@@ -113,12 +109,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/statuslabels?limit=50",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "statuslabels"
-              ],
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["statuslabels"],
               "query": [
                 {
                   "key": "limit",
@@ -159,12 +151,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/users?limit=5",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "users"
-              ],
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["users"],
               "query": [
                 {
                   "key": "limit",
@@ -209,12 +197,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware?limit=5&offset=0",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware"
-              ],
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware"],
               "query": [
                 {
                   "key": "limit",
@@ -270,12 +254,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware?limit=1",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware"
-              ],
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware"],
               "query": [
                 {
                   "key": "limit",
@@ -321,12 +301,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware"]
             },
             "body": {
               "mode": "raw",
@@ -383,13 +359,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}"]
             }
           },
           "event": [
@@ -427,12 +398,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware"]
             },
             "body": {
               "mode": "raw",
@@ -475,13 +442,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}"]
             },
             "body": {
               "mode": "raw",
@@ -522,13 +484,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}"]
             }
           },
           "event": [
@@ -559,14 +516,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}/checkout",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}",
-                "checkout"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}", "checkout"]
             },
             "body": {
               "mode": "raw",
@@ -607,13 +558,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}"]
             }
           },
           "event": [
@@ -644,14 +590,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}/checkin",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}",
-                "checkin"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}", "checkin"]
             },
             "body": {
               "mode": "raw",
@@ -697,13 +637,8 @@
             ],
             "url": {
               "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
-              "host": [
-                "{{apiBaseUrl}}"
-              ],
-              "path": [
-                "hardware",
-                "{{assetId}}"
-              ]
+              "host": ["{{apiBaseUrl}}"],
+              "path": ["hardware", "{{assetId}}"]
             }
           },
           "event": [

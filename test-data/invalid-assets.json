@@ -18,7 +18,11 @@
     },
     {
       "id": "duplicate-tag",
-      "payload": { "asset_tag": "{{EXISTING_TAG}}", "model_id": "{{MODEL_ID}}", "status_id": "{{STATUS_ID}}" },
+      "payload": {
+        "asset_tag": "{{EXISTING_TAG}}",
+        "model_id": "{{MODEL_ID}}",
+        "status_id": "{{STATUS_ID}}"
+      },
       "expectErrorField": "asset_tag"
     }
   ]
