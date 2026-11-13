@@ -1,4 +1,4 @@
-# Snipe-IT QA Automation — Shipcom QA Engineer Assessment
+# Snipe-IT QA Automation
 
 End-to-end test framework for the Snipe-IT **hardware asset workflow** — create → locate → update → check out / check in — on <https://demo.snipeitapp.com>. It covers UI, REST API, cross-layer integration and E2E with **Playwright + TypeScript**, plus a Postman collection, SQL design and GitLab CI.
 
@@ -96,4 +96,4 @@ All variables are in [`.env.example`](.env.example) and described in [docs/05](d
 
 ## Status and AI disclosure
 
-The suite has been run against the live demo (Snipe-IT v8.8.4-pre, build 26409). Locators were confirmed and fixed there, the smoke and regression suites pass, and DEF-01 was found and reproduced. API and integration tests haven't been run yet because they need an API token. H-1 and H-2 in [docs/09](docs/09-defects-and-investigation.md) remain unverified until they are. See [docs/11](docs/11-summary.md) for what is done and not done. Claude (Anthropic) was used to help draft the docs and code. Endpoints were checked against the official Snipe-IT API reference.
+The suite has been run against the live demo (Snipe-IT v8.8.4-pre, build 26409). Locators were confirmed and fixed there, the smoke and regression suites pass, and DEF-01 was found and reproduced. API and integration tests haven't been run yet because they need an API token. H-1 and H-2 in [docs/09](docs/09-defects-and-investigation.md) remain unverified until they are. See [docs/11](docs/11-summary.md) for what is done and not done. Endpoints were checked against the official Snipe-IT API reference.

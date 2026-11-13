@@ -19,7 +19,7 @@ test.describe('Asset form date entry', () => {
       const purchaseDate = '2024-06-15'; // valid ISO date, clearly not "today"
 
       await formPage.gotoCreate();
-      await formPage.fill(data);
+      await formPage.fillForm(data);
       await formPage.expandOrderInfo();
 
       await test.step('type the purchase date like a keyboard user', async () => {

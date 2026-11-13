@@ -125,4 +125,4 @@ Release gate: P1 + P2 must be green (retried-then-passed tests are reported as *
 ## 11. Tooling and AI disclosure
 
 - Playwright Test (TypeScript), ESLint + Prettier, dotenv, GitLab CI, Playwright HTML/JUnit reporters.
-- AI assistance (Claude) was used to draft documentation and framework code. Endpoints were checked against the official Snipe-IT API reference; test behaviour and locators must be validated by running against the demo before submission (see `evidence/RUN-NOTES.md`).
+- Endpoints were checked against the official Snipe-IT API reference; test behaviour and locators must be validated by running against the demo before submission (see `evidence/RUN-NOTES.md`).

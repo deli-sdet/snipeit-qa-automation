@@ -9,7 +9,7 @@ test.describe('Asset form validation', () => {
       const data = buildAsset();
 
       await formPage.gotoCreate();
-      await formPage.fill(data, { modelName: true });
+      await formPage.fillForm(data, { modelName: true });
       await formPage.save();
 
       await expect(page).toHaveURL(/\/hardware\/create/);
@@ -35,7 +35,7 @@ test.describe('Asset form validation', () => {
       const duplicate = buildAsset({ assetTag: testAsset.assetTag });
 
       await formPage.gotoCreate();
-      await formPage.fill(duplicate);
+      await formPage.fillForm(duplicate);
       await formPage.save();
 
       await expect(formPage.fieldError('asset_tag')).toBeVisible();

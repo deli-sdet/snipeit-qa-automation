@@ -4,7 +4,7 @@ test.describe('Update hardware asset', () => {
   test(
     'TC-04 edit name and notes; values persist after reload and revisit',
     { tag: ['@smoke'] },
-    async ({ testAsset, formPage, detailPage, listPage, hardwareApi }) => {
+    async ({ testAsset, formPage, detailPage, listPage }) => {
       const newName = `${testAsset.name}-EDITED`;
       const newNotes = `Updated ${new Date().toISOString()}`;
 
@@ -27,15 +27,7 @@ test.describe('Update hardware asset', () => {
         await expect(listPage.rowByText(testAsset.assetTag)).toContainText(newName);
       });
 
-      // Cross-layer oracle when a token is available (TC-10 is the full version).
-      if (hardwareApi) {
-        await test.step('API returns the UI-edited values', async () => {
-          const res = await hardwareApi.get(testAsset.id);
-          expect(res.status).toBe(200);
-          expect(res.body.name).toBe(newName);
-          expect(res.body.notes).toBe(newNotes);
-        });
-      }
+      // The API side of this check is TC-10 B (tests/integration/api-ui-sync.spec.ts).
     },
   );
 });

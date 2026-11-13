@@ -3,7 +3,8 @@ import { env, hasApiToken, NO_TOKEN_REASON } from '../config/env';
 import { ApiClient } from '../api/ApiClient';
 import { HardwareApi } from '../api/HardwareApi';
 import { LookupApi } from '../api/LookupApi';
-import type { Lookups } from '../api/types';
+import type { ApiResult } from '../api/ApiClient';
+import type { Lookups, SnipeEnvelope } from '../api/types';
 import type { CreatedAsset } from '../utils/testData';
 import { createAssetViaApi, deleteAsset } from './assetService';
 
@@ -17,7 +18,11 @@ interface ApiFixtures {
   anonApi: ApiClient;
   /** Client with a deliberately invalid token. */
   badTokenApi: ApiClient;
-  apiCleanup: { track(asset: Pick<CreatedAsset, 'id' | 'assetTag'>): void };
+  apiCleanup: {
+    track(asset: Pick<CreatedAsset, 'id' | 'assetTag'>): void;
+    /** For negative tests: if the API wrongly created the asset anyway, delete it in teardown. */
+    trackIfCreated(res: ApiResult<SnipeEnvelope<{ id: number }>>, assetTag: string): void;
+  };
   apiAsset: CreatedAsset;
 }
 
@@ -60,7 +65,13 @@ export const apiTest = base.extend<ApiFixtures, ApiWorkerFixtures>({
 
   apiCleanup: async ({ hardware }, use) => {
     const tracked: Pick<CreatedAsset, 'id' | 'assetTag'>[] = [];
-    await use({ track: (a) => tracked.push(a) });
+    await use({
+      track: (a) => tracked.push(a),
+      trackIfCreated: (res, assetTag) => {
+        if (res.body?.status === 'success' && res.body.payload)
+          tracked.push({ id: res.body.payload.id, assetTag });
+      },
+    });
     if (!env.cleanup) return;
     for (const a of tracked.reverse()) await deleteAsset(a, { hardware });
   },

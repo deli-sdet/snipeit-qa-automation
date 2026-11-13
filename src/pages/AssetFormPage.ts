@@ -92,7 +92,7 @@ export class AssetFormPage extends BasePage {
   }
 
   /** Fills the form. Fields set to undefined in `skip` are left untouched (for validation tests). */
-  async fill(data: AssetInput, skip: Partial<Record<keyof AssetInput, true>> = {}): Promise<void> {
+  async fillForm(data: AssetInput, skip: Partial<Record<keyof AssetInput, true>> = {}): Promise<void> {
     if (!skip.assetTag) await this.assetTag.fill(data.assetTag);
     if (!skip.modelName) await this.selectModel(data.modelName);
     if (!skip.statusName) await this.selectStatus(data.statusName);
@@ -112,7 +112,7 @@ export class AssetFormPage extends BasePage {
 
   async create(data: AssetInput): Promise<void> {
     await this.gotoCreate();
-    await this.fill(data);
+    await this.fillForm(data);
     await this.save();
   }
 

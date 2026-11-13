@@ -44,8 +44,3 @@ export class CheckoutPage extends BasePage {
     return chosen;
   }
 }
-
-/** Extracts the username from a Select2 user label like "Doe, Jane (jdoe)". */
-export function usernameFromOption(text: string): string | undefined {
-  return /\(([^()]+)\)\s*$/.exec(text)?.[1];
-}

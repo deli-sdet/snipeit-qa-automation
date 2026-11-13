@@ -1,6 +1,5 @@
 import { test, expect } from '../../src/fixtures/test';
 import { env } from '../../src/config/env';
-import { usernameFromOption } from '../../src/pages';
 
 test.describe('Checkout / checkin', () => {
   test(
@@ -10,13 +9,15 @@ test.describe('Checkout / checkin', () => {
       const chosenUser = await test.step('checkout to user', async () => {
         return checkoutPage.checkoutToUser(testAsset.id, env.checkoutUserName, `QA checkout ${env.runId}`);
       });
-      const username = usernameFromOption(chosenUser);
 
       await test.step('asset shows as assigned', async () => {
         await listPage.goto();
         const row = (await listPage.search(testAsset.assetTag)).rows.find((r) => r.id === testAsset.id);
         expect(row?.assigned_to, 'assigned_to after checkout').not.toBeNull();
-        if (username) expect(row?.assigned_to?.username).toBe(username);
+        // The Select2 label we picked must belong to the user the asset is now assigned to.
+        expect(chosenUser, 'checked-out user matches the selected option').toContain(
+          `(${row?.assigned_to?.username})`,
+        );
         expect(row?.status_label?.status_meta).toBe('deployed');
 
         await detailPage.goto(testAsset.id);

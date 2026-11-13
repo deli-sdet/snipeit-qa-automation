@@ -10,7 +10,7 @@ test.describe('Create & locate hardware asset', () => {
 
       await test.step('create via form', async () => {
         await formPage.gotoCreate();
-        await formPage.fill(data);
+        await formPage.fillForm(data);
         await formPage.save();
         await formPage.expectSuccessAlert();
       });

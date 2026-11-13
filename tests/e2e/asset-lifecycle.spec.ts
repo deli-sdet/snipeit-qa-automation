@@ -32,6 +32,7 @@ test(
     });
 
     const editedNotes = `E2E edit ${env.runId}`;
+
     await test.step('update notes and verify after reload', async () => {
       await formPage.editNameAndNotes(id, data.name, editedNotes);
       await formPage.expectSuccessAlert();

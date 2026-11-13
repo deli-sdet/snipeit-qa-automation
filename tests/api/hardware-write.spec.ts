@@ -54,9 +54,7 @@ test.describe('API write — hardware', () => {
         model_id: apiLookups.modelId,
         status_id: apiLookups.statusId,
       });
-      if (res.body?.status === 'success' && res.body.payload) {
-        apiCleanup.track({ id: res.body.payload.id, assetTag: apiAsset.assetTag });
-      }
+      apiCleanup.trackIfCreated(res, apiAsset.assetTag);
       const httpStatus = expectApiValidationError(res, 'asset_tag');
       test
         .info()
@@ -74,9 +72,7 @@ test.describe('API write — hardware', () => {
         asset_tag: data.assetTag,
         status_id: apiLookups.statusId,
       } as unknown as Parameters<typeof hardware.create>[0]);
-      if (res.body?.status === 'success' && res.body.payload) {
-        apiCleanup.track({ id: res.body.payload.id, assetTag: data.assetTag });
-      }
+      apiCleanup.trackIfCreated(res, data.assetTag);
       expectApiValidationError(res, 'model_id');
       expect(await hardware.countByExactTag(data.assetTag)).toBe(0);
     },
@@ -113,9 +109,7 @@ test.describe('API write — hardware', () => {
           status_id: apiLookups.statusId,
           name: data.name,
         });
-        if (res.body?.status === 'success' && res.body.payload) {
-          apiCleanup.track({ id: res.body.payload.id, assetTag: data.assetTag });
-        }
+        apiCleanup.trackIfCreated(res, data.assetTag);
         expectApiValidationError(res, 'name');
         expect(await hardware.countByExactTag(data.assetTag)).toBe(0);
       },
