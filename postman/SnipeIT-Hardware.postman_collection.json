@@ -1,0 +1,725 @@
+{
+  "info": {
+    "name": "Snipe-IT Hardware API \u2014 QA assessment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Asset workflow: lookups -> read/schema -> auth negative -> create -> duplicate negative -> update -> checkout/checkin -> delete.\nSet apiToken in the environment (Account > Manage API Keys). If the demo blocks token creation, run against a local Snipe-IT (see docs/07-api-testing.md)."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{apiToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "modelId",
+      "value": ""
+    },
+    {
+      "key": "statusId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "assetId",
+      "value": ""
+    },
+    {
+      "key": "assetTag",
+      "value": ""
+    },
+    {
+      "key": "assetName",
+      "value": ""
+    },
+    {
+      "key": "runId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 Lookups (setup)",
+      "item": [
+        {
+          "name": "Find model by name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/models?search={{modelName}}&limit=5",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "models"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{modelName}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().rows;",
+                  "pm.test('model found', () => pm.expect(rows.length).to.be.above(0));",
+                  "pm.collectionVariables.set('modelId', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Find deployable status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/statuslabels?limit=50",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "statuslabels"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().rows;",
+                  "const s = rows.find(r => r.name.toLowerCase() === pm.environment.get('statusName').toLowerCase()) || rows.find(r => r.type === 'deployable');",
+                  "pm.test('deployable status found', () => pm.expect(s).to.be.an('object'));",
+                  "pm.collectionVariables.set('statusId', s.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Find checkout user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/users?limit=5",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().rows;",
+                  "const u = rows.find(r => r.username !== 'admin') || rows[0];",
+                  "pm.collectionVariables.set('userId', u.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 Read & schema",
+      "item": [
+        {
+          "name": "List hardware (limit 5)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware?limit=5&offset=0",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('total is number, rows is array', () => { pm.expect(b.total).to.be.a('number'); pm.expect(b.rows).to.be.an('array'); });",
+                  "pm.test('rows <= limit', () => pm.expect(b.rows.length).to.be.at.most(5));",
+                  "const rowSchema = { type:'object', required:['id','asset_tag','model','status_label','created_at','updated_at'],",
+                  "  properties:{ id:{type:'integer'}, asset_tag:{type:'string'}, name:{type:['string','null']},",
+                  "    model:{type:'object', required:['id','name']}, status_label:{type:'object', required:['id','name']},",
+                  "    assigned_to:{type:['object','null']} } };",
+                  "pm.test('response matches list schema', () => pm.response.to.have.jsonSchema({ type:'object', required:['total','rows'],",
+                  "  properties:{ total:{type:'integer'}, rows:{ type:'array', items: rowSchema } } }));",
+                  "pm.test('response time < 3s', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 Authorization negatives",
+      "item": [
+        {
+          "name": "List hardware WITHOUT token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware?limit=1",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('no data leaked', () => pm.expect(pm.response.json()).to.not.have.property('rows'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 Create / update / checkout workflow",
+      "item": [
+        {
+          "name": "Create asset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_tag\": \"{{assetTag}}\",\n  \"model_id\": \"{{modelId}}\",\n  \"status_id\": \"{{statusId}}\",\n  \"name\": \"{{assetName}}\",\n  \"serial\": \"SN-{{runId}}\",\n  \"notes\": \"Created by Postman run {{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = Date.now().toString();",
+                  "pm.collectionVariables.set('runId', runId);",
+                  "pm.collectionVariables.set('assetTag', `${pm.environment.get('testPrefix')}-PM-${runId}`);",
+                  "pm.collectionVariables.set('assetName', `${pm.environment.get('testPrefix')} Postman ${runId}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('body.status = success (do not trust HTTP code alone)', () => pm.expect(pm.response.json().status).to.eql('success'));",
+                  "",
+                  "const p = pm.response.json().payload;",
+                  "pm.test('payload.id returned', () => pm.expect(p.id).to.be.a('number'));",
+                  "pm.collectionVariables.set('assetId', p.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get created asset by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const a = pm.response.json();",
+                  "pm.test('fields match create request', () => {",
+                  "  pm.expect(a.asset_tag).to.eql(pm.collectionVariables.get('assetTag'));",
+                  "  pm.expect(a.name).to.eql(pm.collectionVariables.get('assetName'));",
+                  "  pm.expect(a.model.id).to.eql(Number(pm.collectionVariables.get('modelId')));",
+                  "  pm.expect(a.assigned_to).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create duplicate tag -> validation error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_tag\": \"{{assetTag}}\",\n  \"model_id\": \"{{modelId}}\",\n  \"status_id\": \"{{statusId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 or 422 (Snipe-IT documents 200 for validation errors)', () => pm.expect([200,422]).to.include(pm.response.code));",
+                  "const b = pm.response.json();",
+                  "pm.test('body.status = error', () => pm.expect(b.status).to.eql('error'));",
+                  "pm.test('messages.asset_tag present', () => pm.expect(b.messages).to.have.property('asset_tag'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update notes (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Updated by Postman {{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('body.status = success (do not trust HTTP code alone)', () => pm.expect(pm.response.json().status).to.eql('success'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify update persisted",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('notes updated', () => pm.expect(pm.response.json().notes).to.eql(`Updated by Postman ${pm.collectionVariables.get('runId')}`));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Checkout to user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}/checkout",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}",
+                "checkout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"checkout_to_type\": \"user\",\n  \"assigned_user\": \"{{userId}}\",\n  \"note\": \"Postman checkout\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('body.status = success (do not trust HTTP code alone)', () => pm.expect(pm.response.json().status).to.eql('success'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify assigned",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('assigned to user', () => pm.expect(pm.response.json().assigned_to.id).to.eql(Number(pm.collectionVariables.get('userId'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Checkin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}/checkin",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}",
+                "checkin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Postman checkin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('body.status = success (do not trust HTTP code alone)', () => pm.expect(pm.response.json().status).to.eql('success'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9 Cleanup",
+      "item": [
+        {
+          "name": "Delete asset",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/hardware/{{assetId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "hardware",
+                "{{assetId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('body.status = success (do not trust HTTP code alone)', () => pm.expect(pm.response.json().status).to.eql('success'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
