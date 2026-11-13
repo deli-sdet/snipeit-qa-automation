@@ -11,7 +11,7 @@ What will be automated (Parts 2–3), how the framework is structured, and the p
 | `tests/ui/asset-update.spec.ts` | UI | TC-04 | `@smoke` |
 | `tests/ui/asset-validation.spec.ts` | UI | TC-05, TC-06 (UI) | `@regression` |
 | `tests/ui/asset-checkout.spec.ts` | UI | TC-08 | `@regression` |
-| `tests/api/hardware-read.spec.ts` | API | list/detail read, schema & field assertions | `@smoke` |
+| `tests/api/hardware-read.spec.ts` | API | list/detail/bytag read, schema & field assertions, not-found | `@smoke` |
 | `tests/api/hardware-auth.spec.ts` | API | TC-09 (401 no/invalid token) | `@smoke` |
 | `tests/api/hardware-write.spec.ts` | API | create/update, TC-06 (API), TC-07 | `@regression` |
 | `tests/integration/api-ui-sync.spec.ts` | X | TC-10 | `@regression` |
@@ -23,35 +23,40 @@ Not automated (manual): exploratory, visual/responsive, non-admin role setup on 
 
 ```text
 snipeit-qa-automation/
-├── playwright.config.ts        # projects: setup, ui-chromium, api, integration, e2e; retries; reporters
+├── playwright.config.ts        # projects: setup, ui, e2e, api, integration (+ firefox/webkit opt-in); retries; reporters
 ├── .env.example                # all env vars (copy to .env)
-├── .gitlab-ci.yml              # lint → typecheck → api → ui → e2e → rerun-failed → report
-├── eslint.config.mjs / .prettierrc
+├── .gitlab-ci.yml              # lint/typecheck → api → ui/integration → e2e → manual rerun-failed → flaky summary
+├── eslint.config.mjs  .prettierrc  tsconfig.json
 ├── src/
-│   ├── config/env.ts           # typed, validated env loading (fails fast on missing vars)
+│   ├── config/env.ts           # typed, validated env loading; shared RUN_ID across workers
 │   ├── pages/                  # Page Objects (POM)
-│   │   ├── BasePage.ts         # shared waits, alerts, navigation helpers
+│   │   ├── BasePage.ts         # alerts, navigation, session-lost detection
 │   │   ├── LoginPage.ts
-│   │   ├── HardwareListPage.ts # search, table rows, wait for bootstrap-table load
-│   │   ├── AssetFormPage.ts    # create/edit form, Select2 helpers, field errors
-│   │   ├── AssetDetailPage.ts  # read values, history tab, checkout/checkin buttons
-│   │   └── CheckoutPage.ts / CheckinPage.ts
+│   │   ├── HardwareListPage.ts # search + wait on the table's /api/v1/hardware XHR, returns its JSON
+│   │   ├── AssetFormPage.ts    # create/edit form, field errors
+│   │   ├── AssetDetailPage.ts  # values, history, delete via confirm modal
+│   │   ├── CheckoutPage.ts / CheckinPage.ts
+│   │   └── components/Select2.ts  # reusable Select2 dropdown helper
 │   ├── api/
-│   │   ├── ApiClient.ts        # Bearer auth, JSON headers, body status/error unwrapping
-│   │   ├── HardwareApi.ts      # list/get/bytag/create/patch/delete/checkout/checkin
-│   │   ├── LookupApi.ts        # models, statuslabels, users, locations by name
-│   │   └── schemas/            # JSON schema / zod for response validation
+│   │   ├── ApiClient.ts        # Bearer auth, JSON headers, never throws on non-2xx
+│   │   ├── HardwareApi.ts      # list/get/bytag/create/patch/delete/checkout/checkin + envelope assertions
+│   │   ├── LookupApi.ts        # models, statuslabels, users by name
+│   │   ├── types.ts
+│   │   └── schemas/asset.schema.ts
 │   ├── fixtures/
-│   │   ├── test.ts             # extended `test` with fixtures below
+│   │   ├── test.ts             # UI fixtures: pages, hardwareApi, lookups, cleanup registry, testAsset
+│   │   ├── apiTest.ts          # browser-free API fixtures: hardware, anonApi, badTokenApi, apiAsset
+│   │   ├── assetService.ts     # create (API/UI) and delete helpers
 │   │   ├── auth.setup.ts       # logs in once → storageState (.auth/admin.json)
-│   │   └── data.ts             # testAsset fixture: create → yield → delete
-│   └── utils/
-│       ├── testData.ts         # QA-TA-<ts>-<rand> generator, asset factory
-│       ├── cleanup.ts          # registry of created IDs + sweeper for this RUN_ID
-│       └── logger.ts
+│   │   ├── global-setup.ts     # AUT health check
+│   │   └── global-teardown.ts  # sweeper for this RUN_ID only
+│   └── utils/testData.ts, logger.ts
 ├── tests/{ui,api,integration,e2e}/
+├── postman/                    # collection + environment (Newman: npm run test:postman)
+├── docker/                     # private Snipe-IT + MariaDB for controlled runs
 ├── test-data/                  # static JSON fixtures (boundary + invalid inputs)
-├── sql/                        # SQL verification queries (Part 4)
+├── sql/                        # workflow verification + Part 4 integrity queries
+├── evidence/                   # execution evidence + run notes
 └── docs/
 ```
 
@@ -72,11 +77,11 @@ snipeit-qa-automation/
 | Logged-out tests | `test.use({ storageState: { cookies: [], origins: [] } })` + `context.clearCookies()` for TC-01/TC-09. |
 | Session expiry / demo reset | Setup re-runs on each run; a fixture detects redirect to `/login` and fails with a clear "session invalid / demo reset" message rather than a locator timeout. |
 | API auth | `Authorization: Bearer ${SNIPEIT_API_TOKEN}`, `Accept: application/json`, `Content-Type: application/json`. If token is absent, API/integration projects are **skipped with a reason**, not failed. |
-| Lookups | `globalSetup` resolves model/status/user/location IDs by name (API or UI) and caches them in `.cache/lookups.json` for the run. |
+| Lookups | A worker-scoped fixture resolves model/status/user IDs by name via the API once per worker; UI tests select by name in Select2 and need no IDs. |
 
 ## 4. Test data and cleanup
 
-- `testAsset` fixture: builds data via factory → creates via API (fallback UI) → registers id in cleanup registry → yields `{id, tag, name}` → deletes in teardown (checks in first if checked out).
+- `testAsset` fixture (UI) / `apiAsset` fixture (API): builds data via factory → creates via API (fallback UI) → registers id in cleanup registry → yields `{id, tag, name}` → deletes in teardown (checks in first if checked out).
 - Teardown runs even if the test fails (`fixture` teardown semantics).
 - `globalTeardown` sweeper: finds assets whose tag starts with `${TEST_PREFIX}-` **and** contains this `RUN_ID`, deletes leftovers. It never touches other data.
 - `CLEANUP=false` keeps data for debugging.
@@ -98,15 +103,16 @@ snipeit-qa-automation/
 ```mermaid
 flowchart LR
   L[lint + typecheck] --> A[test:api]
-  L --> U[test:ui<br/>sharded 1/2, 2/2]
+  L --> U[test:ui]
   A --> I[test:integration]
   U --> E[test:e2e]
-  I --> R[rerun-failed<br/>on_failure]
+  I --> R[rerun:* manual<br/>--last-failed]
   E --> R
-  R --> P[report<br/>merge + pages]
+  E --> P[flaky-summary]
 ```
 
-- Image: `mcr.microsoft.com/playwright:v<version>-noble` (browsers preinstalled).
+- Image: `mcr.microsoft.com/playwright:v1.63.0-noble` (browsers preinstalled; matches `@playwright/test`).
+- Job-level `retry` only for runner/infrastructure failures, never for test failures.
 - Secrets as masked CI/CD variables: `SNIPEIT_PASSWORD`, `SNIPEIT_API_TOKEN`.
 - Artifacts: `playwright-report/`, `test-results/`, `junit.xml` (GitLab test report widget).
 - Schedules: nightly full regression; MR pipelines run `@smoke`.

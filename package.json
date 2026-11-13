@@ -1,0 +1,43 @@
+{
+  "name": "snipeit-qa-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E2E test framework (UI, API, integration) for the Snipe-IT hardware asset workflow",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --project=ui",
+    "test:api": "playwright test --project=api",
+    "test:integration": "playwright test --project=integration",
+    "test:e2e": "playwright test --project=e2e",
+    "test:smoke": "playwright test --grep @smoke --grep-invert @quarantine",
+    "test:regression": "playwright test --grep-invert @quarantine",
+    "test:quarantine": "playwright test --grep @quarantine",
+    "test:rerun": "playwright test --last-failed",
+    "test:headed": "playwright test --project=ui --project=e2e --headed --workers=1",
+    "test:debug": "playwright test --debug",
+    "test:list": "playwright test --list",
+    "test:postman": "npx --yes newman run postman/SnipeIT-Hardware.postman_collection.json -e postman/SnipeIT-demo.postman_environment.json --reporters cli,junit --reporter-junit-export results/postman-junit.xml",
+    "report": "playwright show-report",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test:list"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.10.0",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-playwright": "^2.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  }
+}

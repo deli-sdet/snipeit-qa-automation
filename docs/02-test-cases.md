@@ -2,9 +2,9 @@
 
 Conventions
 
-- `<TAG>` = generated asset tag `QA-TA-<yyyyMMddHHmmss>-<rand4>`; `<NAME>` = `QA-TA Laptop <ts>`.
+- `<TAG>` = generated asset tag `QA-TA-<RUN_ID>-<suffix>`; `<NAME>` = `QA-TA Laptop <RUN_ID>-<suffix>`.
 - Lookups (model, status, user, location) are resolved by name at runtime — see [05](05-test-data-and-environment.md).
-- **Common precondition (CP)**: demo reachable; admin session (`admin` / `password`); asset model e.g. *"Macbook Pro 13\""* exists; status label **Ready to Deploy** exists; a user to check out to exists.
+- **Common precondition (CP)**: demo reachable; admin session (`admin` / `password`); asset model e.g. *"Macbook Pro 13"* exists; status label **Ready to Deploy** exists; a user to check out to exists.
 - **Layer**: UI, API, X (cross-layer), E2E. **Auto**: planned automation (Part 2/3) or Manual.
 
 ## Summary
@@ -17,7 +17,7 @@ Conventions
 | TC-04 | Update asset name and notes; value persists after reload | Happy path | UI | P1 | Yes (Part 2) |
 | TC-05 | Create asset without required Model shows error and creates nothing | Validation | UI | P1 | Yes (Part 2) |
 | TC-06 | Duplicate asset tag is rejected (UI and API) | Validation | UI + API | P1 | Yes (Part 2/3) |
-| TC-07 | Name length boundary (255 / 256) and special characters | Boundary | UI + API | P2 | Yes (Part 3) |
+| TC-07 | Name length boundary (255 / 256) and special characters | Boundary | API (UI manual) | P2 | Yes (Part 3) |
 | TC-08 | Check out asset to a user, then check it in | Happy path / state | UI + API | P2 | Yes (Part 2/3, if permitted) |
 | TC-09 | Unauthenticated / unauthorized access is blocked | Permissions | UI + API | P1 | Yes (Part 2/3) |
 | TC-10 | API change is reflected in UI and UI change in API | Cross-layer | X | P1 | Yes (Part 3) |

@@ -1,0 +1,171 @@
+# Snipe-IT QA automation pipeline
+# Secrets (Settings > CI/CD > Variables, masked):  SNIPEIT_PASSWORD, SNIPEIT_API_TOKEN
+# Optional variables: BASE_URL, TEST_ENV, WORKERS, CHECKOUT_USER_NAME, DEFAULT_MODEL_NAME
+
+stages:
+  - quality
+  - api
+  - ui
+  - e2e
+  - rerun
+  - report
+
+variables:
+  PW_VERSION: '1.63.0' # keep in sync with @playwright/test in package.json
+  TEST_ENV: demo
+  BASE_URL: https://demo.snipeitapp.com
+  SNIPEIT_USERNAME: admin
+  TEST_PREFIX: QA-TA
+  RUN_ID: $CI_PIPELINE_ID
+  WORKERS: '2'
+  npm_config_cache: $CI_PROJECT_DIR/.npm
+
+default:
+  image: mcr.microsoft.com/playwright:v${PW_VERSION}-noble
+  cache:
+    key:
+      files: [package-lock.json]
+      prefix: npm
+    paths: [.npm/]
+    fallback_keys: [npm-default]
+  before_script:
+    - node --version
+    - if [ -f package-lock.json ]; then npm ci; else npm install; fi
+  # Retry the JOB only for infrastructure problems, never for test failures
+  # (test-level flakiness is handled by Playwright retries and surfaced as "flaky").
+  retry:
+    max: 1
+    when: [runner_system_failure, stuck_or_timeout_failure, scheduler_failure, api_failure]
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# ---------- quality ----------
+lint:
+  stage: quality
+  script:
+    - npm run lint
+    - npm run format:check
+
+typecheck:
+  stage: quality
+  script:
+    - npm run typecheck
+    - npx playwright test --list > results-list.txt && tail -n 1 results-list.txt
+
+# ---------- shared test template ----------
+.pw-test:
+  variables:
+    # MR pipelines run smoke only; default branch / schedules run full regression
+    GREP_ARGS: '--grep-invert @quarantine'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        GREP_ARGS: '--grep @smoke --grep-invert @quarantine'
+    - when: on_success
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - playwright-report/
+      - test-results/
+      - results/
+    reports:
+      junit: results/junit-*.xml
+
+test:api:
+  extends: .pw-test
+  stage: api
+  needs: [lint, typecheck]
+  script:
+    - npx playwright test --project=api $GREP_ARGS
+
+test:ui:
+  extends: .pw-test
+  stage: ui
+  needs: [lint, typecheck]
+  script:
+    - npx playwright test --project=ui $GREP_ARGS
+
+test:integration:
+  extends: .pw-test
+  stage: ui
+  needs: [test:api]
+  script:
+    - npx playwright test --project=integration $GREP_ARGS
+
+test:e2e:
+  extends: .pw-test
+  stage: e2e
+  needs: [test:ui]
+  script:
+    - npx playwright test --project=e2e $GREP_ARGS
+
+# Quarantined tests run but never block the pipeline (time-boxed; tracked in issues).
+test:quarantine:
+  extends: .pw-test
+  stage: e2e
+  needs: [lint, typecheck]
+  allow_failure: true
+  script:
+    - npx playwright test --grep @quarantine --pass-with-no-tests
+
+# ---------- rerun only failed tests (manual triage aid) ----------
+# Uses test-results/.last-run.json from the failed job's artifacts.
+.rerun-failed:
+  stage: rerun
+  when: manual
+  allow_failure: true
+  variables:
+    RETRIES: '0' # a clean rerun: no automatic retries, so a pass/fail is unambiguous
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths: [playwright-report/, test-results/, results/]
+    reports:
+      junit: results/junit-*.xml
+
+rerun:ui:
+  extends: .rerun-failed
+  needs: [{ job: test:ui, artifacts: true }]
+  script:
+    - npx playwright test --project=ui --last-failed --pass-with-no-tests
+
+rerun:api:
+  extends: .rerun-failed
+  needs: [{ job: test:api, artifacts: true }]
+  script:
+    - npx playwright test --project=api --last-failed --pass-with-no-tests
+
+rerun:e2e:
+  extends: .rerun-failed
+  needs: [{ job: test:e2e, artifacts: true }]
+  script:
+    - npx playwright test --project=e2e --last-failed --pass-with-no-tests
+
+# ---------- report ----------
+flaky-summary:
+  stage: report
+  when: always
+  needs:
+    - { job: test:api, artifacts: true, optional: true }
+    - { job: test:ui, artifacts: true, optional: true }
+    - { job: test:e2e, artifacts: true, optional: true }
+  before_script: []
+  script:
+    - |
+      node -e '
+        const fs=require("fs");
+        const files=fs.existsSync("results")?fs.readdirSync("results").filter(f=>/^results-.*\.json$/.test(f)):[];
+        let flaky=0;
+        for(const f of files){
+          const s=JSON.parse(fs.readFileSync("results/"+f)).stats||{};
+          flaky+=s.flaky||0;
+          console.log(`${f}: expected=${s.expected} unexpected=${s.unexpected} flaky=${s.flaky} skipped=${s.skipped}`);
+        }
+        if(flaky>0) console.log(`WARNING: ${flaky} flaky test(s) passed only on retry — open/update a ticket.`);
+      '
