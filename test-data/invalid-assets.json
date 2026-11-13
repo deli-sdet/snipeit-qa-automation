@@ -1,0 +1,25 @@
+{
+  "_comment": "Negative payloads for UI/API validation (TC-05, TC-06). {{TAG}}, {{MODEL_ID}}, {{STATUS_ID}} are replaced at runtime.",
+  "cases": [
+    {
+      "id": "missing-model",
+      "payload": { "asset_tag": "{{TAG}}", "status_id": "{{STATUS_ID}}" },
+      "expectErrorField": "model_id"
+    },
+    {
+      "id": "missing-status",
+      "payload": { "asset_tag": "{{TAG}}", "model_id": "{{MODEL_ID}}" },
+      "expectErrorField": "status_id"
+    },
+    {
+      "id": "non-existent-model",
+      "payload": { "asset_tag": "{{TAG}}", "model_id": 99999999, "status_id": "{{STATUS_ID}}" },
+      "expectErrorField": "model_id"
+    },
+    {
+      "id": "duplicate-tag",
+      "payload": { "asset_tag": "{{EXISTING_TAG}}", "model_id": "{{MODEL_ID}}", "status_id": "{{STATUS_ID}}" },
+      "expectErrorField": "asset_tag"
+    }
+  ]
+}

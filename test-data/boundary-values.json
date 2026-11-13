@@ -1,0 +1,11 @@
+{
+  "_comment": "Static inputs for TC-07. Lengths assume name max = 255 (confirm, see docs/03-open-questions.md Q6). Long strings are generated in code from these specs.",
+  "name": {
+    "maxLength": 255,
+    "atMax": { "repeat": "A", "length": 255, "expect": "accepted" },
+    "overMax": { "repeat": "A", "length": 256, "expect": "rejected" },
+    "unicode": { "value": "Ünïcødé 测试 ✓", "expect": "accepted, rendered exactly" },
+    "html": { "value": "<script>alert(1)</script>", "expect": "accepted, rendered escaped as text" },
+    "whitespaceOnly": { "value": "   ", "expect": "trimmed / treated as empty (clarify)" }
+  }
+}
